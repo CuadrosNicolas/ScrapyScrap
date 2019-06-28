@@ -1,0 +1,16 @@
+{
+  "name": "scrapyscrap",
+  "version": "0.1.0",
+  "description": "Small script to help scraping repositories from github.",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Cuadros Nicolas",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^16.28.2",
+    "fs-extra": "^8.0.1",
+    "nodegit": "^0.24.3"
+  }
+}
