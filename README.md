@@ -15,4 +15,4 @@ npm install
 node test.js
 ```
 
-You can see directly the [test file]("./test.js") to see how it works and how to make your own scraping pipeline.
+You can see directly the [test file]("https://github.com/CuadrosNicolas/ScrapyScrap/blob/master/test.js") to see how it works and how to make your own scraping pipeline.
