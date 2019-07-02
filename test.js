@@ -11,8 +11,8 @@ let start = async function () {
 			queryChain("test_chain", {
 				//keywords: "",
 				language: "scala",
-				begin: new Date("2019-01-01"),
-				end: new Date("2019-07-01"),
+				begin: new Date("2019-06-01"),
+				end: new Date("2019-06-02"),
 				stars: ">0",
 				step: 1
 				})
@@ -20,13 +20,16 @@ let start = async function () {
 						fileName: "build",
 						fileExtension: "sbt",
 						keywords: "akka-actor"
-					},"build") //Check if the repository contain a build.sbt file
-								// and if it contain the akka keyword
-
+				}, "actor", true) //Check if the repository contain a build.sbt file
+								// and if it contain the akka-actor keyword
+				.checkFile({
+					fileName: "build",
+					fileExtension: "sbt",
+					keywords: "akka-actor"
+				}, "test",true)
+				.checkProperty(r=>r.properties.actor && r.properties.test)
 				.clone(".results")	//Clone the repository
 									//Add the fullPath property to the repository
-
-
 				 .checkCommand((r) =>
 				 `cd ${r.properties.fullPath} && sbt compile < /dev/null;`
 				 ,"buildable")	//Test to compile

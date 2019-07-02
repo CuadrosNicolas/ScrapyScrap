@@ -83,6 +83,22 @@ class QueryChainObject{
 		return this;
 	}
 	/**
+	 *	Add a task to test properties of the repo
+	 * @param {*} f take a repository and return a boolean
+	 * 				use it to test properties of the repository
+	 */
+	checkProperty(condition=(r)=>true)
+	{
+		this.taskChain.task((r)=>{
+				return {
+					results : r,
+					recover : {},
+					continue: condition(r)
+				}
+		})
+	}
+
+	/**
 	 *	Add a command task
 	 *
 	 * @param {*} f Function taking a repository as a parameter,

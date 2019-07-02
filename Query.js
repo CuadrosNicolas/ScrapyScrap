@@ -119,7 +119,7 @@ async function searchFileInRepo(repository, options,rec) {
 		rec = recover
 	}
 	return {
-		results : r.map(f=>File(f)),
+		results : r,
 		recover: { ...temp_rec		}
 	}
 }
@@ -200,7 +200,7 @@ function getQueryRepoGenerator(options)
 					let repo = results[i];
 					if (!(alreadySeen.hasOwnProperty(repo.id))) {
 						yield {
-							results: Repository(repo),
+							results: repo,
 							recover: {
 								lastIndex: i,
 								lastDate: beginDate,
