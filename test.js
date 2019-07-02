@@ -8,31 +8,34 @@ let start = async function () {
 		 * With an amount of stars superior to 0
 		 * With a step of 1 day between each sub request of repository
 		 */
-		const searchRepo_options = {
-			keywords: "akka",
-			language: "scala",
-			begin: new Date("2019-06-01"),
-			end: new Date("2019-06-02"),
-			stars: ">0",
-			step: 1
-		};
-		const checkProperty_options = {
-			fileName: "build",
-			fileExtension: "sbt",
-			keywords: "akka"
-		};
-		const checkProperty_name = "build";
-		const buildProperty_name = "buildable"
-		const clone_folder = "./results";
-		queryChain("test_chain",searchRepo_options)
-			.checkFile(checkProperty_options,checkProperty_name)
-			.clone(clone_folder)//Add the fullPath property to the repository
-			.checkCommand((r) => [
-				`cd ${r.properties.fullPath} && sbt compile < /dev/null;`
-			].join("\n"),buildProperty_name)
-			.run()
+			queryChain("test_chain", {
+				keywords: "akka",
+				language: "scala",
+				begin: new Date("2019-06-01"),
+				end: new Date("2019-06-02"),
+				stars: ">0",
+				step: 1
+				})
+				.checkFile({
+						fileName: "build",
+						fileExtension: "sbt",
+						keywords: "akka"
+					},"build") //Check if the repository contain a build.sbt file
+								// and if it contain the akka keyword
 
+				.clone(".results")	//Clone the repository
+									//Add the fullPath property to the repository
 
+				.checkCommand((r) =>
+					`cd ${r.properties.fullPath} && sbt compile < /dev/null;`
+					,"buildable")	//Test to compile
+
+				.run((r)=>{
+						console.log("Repositories : ")
+						Object.keys(r).forEach((k)=>{
+							console.log(`\t ${r[k].login}/${r[k].name}`)
+						});
+					}) //Shows each repositories that fulfill all criterias
 
 }
 start()

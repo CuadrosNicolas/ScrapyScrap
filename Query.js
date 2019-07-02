@@ -18,6 +18,79 @@ else {
 const clientWithAuth = new Octokit({
 	auth: 'token ' + configs.API_TOKEN
 })
+
+/**
+ * Github query used as an async generator
+ * yield each page of the response
+ * Wait if it exceed the rate limit
+ *
+ * @param {*} queryFunction Function from octokit.search
+ * @param {*} query Query to send
+ * @param {*} recover Recover object used to recover from a crash
+ */
+async function* queryGenerator(queryFunction, query, recover) {
+	prompt.level(0).print("Query : ", query)
+	let length = 0;
+	if (recover == undefined)
+		recover = {}
+	let total_count = recover.total_count != undefined ? recover.total_count : null;
+	let count = recover.count != undefined ? recover.count : 0;
+	let page = recover.lastPage != undefined ? recover.lastPage : 1;
+	let lastResults = recover.lastResults != undefined ? recover.lastResults : null
+	if (lastResults != null) {
+		prompt.level(1).print("Recovering page " + lastResults);
+		yield {
+			results: lastResults,
+			recover: {
+				lastResults,
+				page,
+				count,
+				total_count
+			}
+		};
+		page++;
+	}
+	while (page <= 10 && (total_count == null || count < total_count)) {
+		let wait = 0;
+		let rateLimit = (await clientWithAuth.rateLimit.get()).data
+		let results = null
+		await queryFunction({ q: query }).then((d) => {
+			results = d;
+			total_count = d.data.total_count
+			length = d.data.items.length
+			count += length
+		}).catch(e => {
+			if (e.status == 403) {
+				time = rateLimit.resources.search.reset
+				waitingTime = new Date((time + 1) * 1000)
+				prompt.level(1).print("Waiting to reset : ", waitingTime - Date.now())
+				wait = waitingTime - Date.now()
+			}
+			else {
+				throw e
+			}
+		})
+		if (wait == 0) {
+			yield {
+				results: results.data.items,
+				recover: {
+					lastPage: page,
+					lastResults: results.data.items,
+					count,
+					total_count
+				}
+			}
+			page += 1;
+		}
+		else {
+			await sleep(wait)
+		}
+	}
+	if (page >= 10) {
+		prompt.level(1).print("WARNING : more than 10 pages has been found, all results might not appear.")
+	}
+}
+
 /**
  * Search for files in a repository following the options provided in parameters
  *@param repository Repository object
@@ -98,77 +171,7 @@ async function cloneRepository(repo, folder = "./repos") {
 			reject(e);
 		}
 }
-/**
- * Github query used as an async generator
- * yield each page of the response
- *
- *
- * @param {*} queryFunction Function from octokit.search
- * @param {*} query Query to send
- * @param {*} recover Recover object used to recover from a crash
- */
-async function* queryGenerator(queryFunction, query,recover) {
-	prompt.level(0).print("Query : ", query)
-	let length = 0;
-	if (recover == undefined)
-		recover = {}
-	let total_count = recover.total_count != undefined ? recover.total_count : null;
-	let count = recover.count != undefined ? recover.count : 0;
-	let page = recover.lastPage != undefined?recover.lastPage:1;
-	let lastResults = recover.lastResults != undefined ? recover.lastResults : null
-	if(lastResults!=null)
-	{
-		prompt.level(1).print("Recovering page " + lastResults);
-		yield {
-			results : lastResults,
-			recover : {
-				lastResults,
-				page,
-				count,
-				total_count
-			}
-		};
-		page++;
-	}
-	while (page <= 10 && (total_count == null || count < total_count)) {
-		let wait = 0;
-		let rateLimit = (await clientWithAuth.rateLimit.get()).data
-		let results = null
-		await queryFunction({ q: query }).then((d) => {
-			results = d;
-			total_count = d.data.total_count
-			length = d.data.items.length
-			count += length
-		}).catch(e => {
-			if (e.status == 403) {
-				time = rateLimit.resources.search.reset
-				waitingTime = new Date((time + 1) * 1000)
-				prompt.level(1).print("Waiting to reset : ", waitingTime - Date.now())
-				wait = waitingTime - Date.now()
-			}
-			else {
-				throw e
-			}
-		})
-		if (wait == 0) {
-			yield {results : results.data.items,
-				recover : {
-					lastPage : page,
-					lastResults: results.data.items,
-					count,
-					total_count
-				}
-			}
-			page += 1;
-		}
-		else {
-			await sleep(wait)
-		}
-	}
-	if (page >= 10) {
-		prompt.level(1).print("WARNING : more than 10 pages has been found, all results might not appear.")
-	}
-}
+
 /**
  *	Send a generator yielding repository from a request
  *
@@ -176,7 +179,7 @@ async function* queryGenerator(queryFunction, query,recover) {
  */
 function getQueryRepoGenerator(options)
 {
-	return async function* repoQueryGenerator(rec) {
+	return async function* (rec) {
 		let lastDate = rec.lastDate
 		let lastIndex = rec.lastIndex
 		let beginDate = lastDate != undefined ? new Date(lastDate) : options.begin

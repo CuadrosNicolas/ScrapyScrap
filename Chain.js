@@ -107,19 +107,15 @@ class TaskChain {
 		delete this.datas[key]
 		return key
 	}
-	async run() {
+	async run(callback = (r) => null) {
 		let rec = this.trackSystem.get("generator")
 		let lastAnalysedResults = 0;
 		for await (let { results, recover } of this.generator(rec)) {
 			this.trackSystem.setState({ generator: recover, lastTask: {},taskRecover : {} })
-			let r = results;
-			let recovering = this.lastTask>0;
-			if(recovering)
-				r = this.datas[this.trackSystem.get("lastAnalysedResults")]
+			let r = this.lastTask > 0 ? this.datas[this.trackSystem.get("lastAnalysedResults")] : results;
 			for (let act_t = this.lastTask; act_t < this.taskList.length && r!=null; act_t++) {
 				this.trackSystem.setState({ lastTask: act_t })
-				let t = this.taskList[act_t];
-				let temp = await t(r,this.taskRecover);
+				let temp = await this.taskList[act_t](r,this.taskRecover);
 				this.taskRecover = {}
 				this.trackSystem.setState({ taskRecover: temp.recover })
 				r = temp.results
@@ -134,9 +130,9 @@ class TaskChain {
 				this.trackSystem.setState({ lastAnalysedResults})
 			}
 			this.lastTask = 0;
-			recovering = false;
 		}
 		this.trackSystem.clean()
+		callback(this.datas);
 	}
 	task(t) {
 

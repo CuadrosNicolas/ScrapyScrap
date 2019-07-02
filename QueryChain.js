@@ -111,12 +111,17 @@ class QueryChainObject{
 		})
 		return this;
 	}
-	async run()
+	async run(callback=(r)=>null)
 	{
-		await this.taskChain.run()
+		await this.taskChain.run(callback)
 	}
 }
 
+/**
+ * Interface for the QueryChainObject
+ * @param {*} name
+ * @param {*} options 
+ */
 function queryChain(name,options)
 {
 	return new QueryChainObject(name,options)
