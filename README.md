@@ -17,7 +17,7 @@ npm install
 Then you have to create a config.json containing your github api key
 
 ```bash
-echo "{\"API_KEY\":\"YOUR_API_KEY\"}" >> config.json
+echo "{\"API_TOKEN\":\"YOUR_API_KEY\"}" >> config.json
 ```
 
 Edit it to add your key.

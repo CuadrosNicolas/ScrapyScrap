@@ -12,7 +12,7 @@ if (fs.existsSync(configFilePath)) {
 	configs = JSON.parse(fs.readFileSync("./config.json"))
 }
 else {
-	fs.writeFileSync(configFilePath, '{\n\t"API_KEY":""\n}')
+	fs.writeFileSync(configFilePath, '{\n\t"API_TOKEN":""\n}')
 	throw new Error("Error : the config file does not exist.\nIt has been created but you need to specify a github access token.")
 }
 const clientWithAuth = new Octokit({
