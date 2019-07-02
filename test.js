@@ -19,19 +19,22 @@ let start = async function () {
 				.checkFile({
 						fileName: "build",
 						fileExtension: "sbt",
-						keywords: "akka"
+						keywords: "akka-actor"
 					},"build") //Check if the repository contain a build.sbt file
 								// and if it contain the akka keyword
 
-				.clone(".results")	//Clone the repository
+				//.clone(".results")	//Clone the repository
 									//Add the fullPath property to the repository
 
-				.checkCommand((r) =>
-					`cd ${r.properties.fullPath} && sbt compile < /dev/null;`
-					,"buildable")	//Test to compile
+				/**
+				 *
+				 .checkCommand((r) =>
+				 `cd ${r.properties.fullPath} && sbt compile < /dev/null;`
+				 ,"buildable")	//Test to compile
 
+				 * */
 				.run((r)=>{
-						console.log("Repositories : ")
+						console.log("Repositories : ",Object.keys(r).length)
 						Object.keys(r).forEach((k)=>{
 							console.log(`\t ${r[k].login}/${r[k].name}`)
 						});
