@@ -12,7 +12,20 @@ then use these commands to install and launch the test :
 
 ```bash
 npm install
+```
+
+Then you have to create a config.json containing your github api key
+
+```bash
+echo "{\"API_KEY\":\"YOUR_API_KEY\"}" >> config.json
+```
+
+Edit it to add your key.
+
+Then you can test the library using the test.js file.
+
+```bash
 node test.js
 ```
 
-You can see directly the [test file]("https://github.com/CuadrosNicolas/ScrapyScrap/blob/master/test.js") to see how it works and how to make your own scraping pipeline.
+You can see explore directly the [test file]("https://github.com/CuadrosNicolas/ScrapyScrap/blob/master/test.js") to see how to use the library and how to make your own scraping pipeline.
