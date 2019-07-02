@@ -1,4 +1,5 @@
 config.json
 node_modules
-results_*
+results*
 .metals
+./results
