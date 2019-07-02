@@ -9,10 +9,10 @@ let start = async function () {
 		 * With a step of 1 day between each sub request of repository
 		 */
 			queryChain("test_chain", {
-				keywords: "akka",
+				//keywords: "",
 				language: "scala",
 				begin: new Date("2019-06-01"),
-				end: new Date("2019-06-02"),
+				end: new Date("2019-06-05"),
 				stars: ">0",
 				step: 1
 				})
