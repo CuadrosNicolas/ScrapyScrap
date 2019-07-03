@@ -89,13 +89,14 @@ class QueryChainObject{
 	 */
 	checkProperty(condition=(r)=>true)
 	{
-		this.taskChain.task((r)=>{
+		this.taskChain.task(async (r)=>{
 				return {
 					results : r,
 					recover : {},
 					continue: condition(r)
 				}
 		})
+		return this;
 	}
 
 	/**

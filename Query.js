@@ -109,7 +109,7 @@ async function searchFileInRepo(repository, options,rec) {
 		+ (fileName ? `filename:${fileName} ` : " ")
 		+ (fileExtension ? `extension:${fileExtension} ` : " ")
 		+ (size ? `size:${size}` : " ")
-		+ `repo:${repository.login + "/" + repository.name} `
+		+ `repo:${repository.owner.login + "/" + repository.name} `
 
 	r = []
 	let temp_rec = null;
@@ -159,9 +159,9 @@ async function cloneRepository(repo, folder = "./repos") {
 		try {
 			if (!folder.endsWith('/'))
 				folder += '/'
-			repo.folder = folder + repo.login + "/" + repo.name
+			repo.folder = folder + repo.owner.login + "/" + repo.name
 			repo.properties.fullPath = process.cwd() + repo.folder.replace(".", "")
-			Git.Clone(repo.clone_url, folder + repo.login + "/" + repo.name)
+			Git.Clone(repo.clone_url, folder + repo.owner.login + "/" + repo.name)
 			return {
 				results : repo,
 				recover : {}
@@ -200,7 +200,10 @@ function getQueryRepoGenerator(options)
 					let repo = results[i];
 					if (!(alreadySeen.hasOwnProperty(repo.id))) {
 						yield {
-							results: repo,
+							results: {
+								...repo,
+								properties : {}
+							},
 							recover: {
 								lastIndex: i,
 								lastDate: beginDate,

@@ -52,7 +52,7 @@ class TrackSystem {
 		} else {
 			this.data = {}
 		}
-		if (fs.existsSync("./results_" + this.name + ".json")) {
+		if (fs.existsSync("./results_" + this.name + ".json") && fs.existsSync("./track_" + this.name + ".json")) {
 			this.linkData = JSON.parse(fs.readFileSync("./results_" + this.name + ".json"))
 		} else {
 			this.linkData = {}
