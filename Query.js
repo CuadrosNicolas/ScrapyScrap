@@ -126,6 +126,31 @@ async function searchFileInRepo(repository, options,rec) {
 
 
 /**
+ * Search for commits in a repository following the options provided in parameters
+ *@param repository Repository object
+ * @param options Options object for the search
+ * @param {String} options.keywords Keywords contained in the file (Optional)
+ * @returns
+ */
+async function searchCommitsInRepo(repository, options, rec) {
+	let keywords = options.keywords
+	let fileName = options.fileName
+	query = (keywords ? `${keywords} ` : " ")
+		+ `repo:${repository.owner.login + "/" + repository.name} `
+
+	r = []
+	let temp_rec = null;
+	for await (let { results, recover } of queryGenerator(clientWithAuth.search.commits, query, rec)) {
+		r.push(...results)
+		rec = recover
+	}
+	return {
+		results: r,
+		recover: { ...temp_rec }
+	}
+}
+
+/**
  *
  * Check if a repository appear in the result of a request
  * The request search for source code following the criteria defined in the options parameters
@@ -148,6 +173,30 @@ function check(options, propertyName) {
 			}
 		}
 	}
+
+/**
+ *
+ * Check if a repository appear in the result of a request
+ * The request search for source code following the criteria defined in the options parameters
+ * Add the property to the repository object with as name "propertyName"
+ *
+ * @param {*} repository Repository to check
+ * @param {*} options  Options of the search code request
+ * @param {*} propertyName Name of the property to add
+ */
+function checkCommit(options, propertyName) {
+	return async function (repository, recover) {
+		let files = (await searchCommitsInRepo(repository, options, recover))
+		repository.properties[propertyName] = {
+			valid: files.results.length > 0,
+			files: files.results,
+		}
+		return {
+			results: repository,
+			recover: { ...files.recover }
+		}
+	}
+}
 
 /**
  * Clone a repository to a folder
@@ -224,4 +273,5 @@ module.exports = {
 	queryGenerator,
 	check,
 	cloneRepository,
+	checkCommit
 }

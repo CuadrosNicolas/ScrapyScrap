@@ -113,6 +113,7 @@ class TaskChain {
 		for await (let { results, recover } of this.generator(rec)) {
 			this.trackSystem.setState({ generator: recover, lastTask: {},taskRecover : {} })
 			let r = this.lastTask > 0 ? this.datas[this.trackSystem.get("lastAnalysedResults")] : results;
+			console.log(results)
 			for (let act_t = this.lastTask; act_t < this.taskList.length && r!=null; act_t++) {
 				this.trackSystem.setState({ lastTask: act_t })
 				let temp = await this.taskList[act_t](r,this.taskRecover);

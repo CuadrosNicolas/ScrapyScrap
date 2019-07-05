@@ -1,8 +1,9 @@
 const {TaskChain} = require("./Chain");
-const {check,cloneRepository,
+const {check,cloneRepository,checkCommit,
 	getQueryRepoGenerator} = require("./Query")
 const {prompt} = require("./Utils")
 const exec = require('child_process').exec;
+const fs = require('fs')
 
 /**
  * Executes a shell command and return it as a Promise.
@@ -15,6 +16,20 @@ function execShellCommand(cmd) {
 			resolve({error,stdout,stderr});
 		});
 	});
+}
+function jsonGenerator(path)
+{
+	return async function*(recover) {
+		let json = JSON.parse(fs.readFileSync(path))
+		for (let index=recover.index!=undefined ? recover.index : 0;index<Object.keys(json).length;index++) {
+			yield {
+				results: { ...json[Object.keys(json)[index]]},
+				recover : {
+					index
+				}
+			}
+		}
+	}
 }
 /**
  * Chain of task to apply to a list of repository produce by a github repository query
@@ -33,12 +48,24 @@ class QueryChainObject{
 	 * @param {*} name Name of the chain (will be the name of the result file)
 	 * @param {*} queryParam Parameters of the repository query
 	 */
-	constructor(name,queryParam)
+	constructor(name,chainParam)
 	{
-		this.taskChain = new TaskChain(name,getQueryRepoGenerator(queryParam),
-			(r) =>{
-				return ({key:r.id,value:r})
-			});
+		if(chainParam.type === "query")
+		{
+			this.taskChain = new TaskChain(name,getQueryRepoGenerator(chainParam.query),
+				(r) =>{
+					return ({key:r.id,value:r})
+				});
+		}
+		else if(chainParam.type ==="file"){
+			this.taskChain = new TaskChain(name, jsonGenerator(chainParam.path),
+				(r) => {
+					return ({ key: r.id, value: r })
+				});
+		}
+		else{
+			throw new Error("Bad chain type")
+		}
 	}
 	/**
 	 * Add a check file task
@@ -58,6 +85,27 @@ class QueryChainObject{
 			return{
 				...results,
 				continue : results.results.properties[name].valid || optional
+			}
+		})
+		return this;
+	}
+	/**
+	 * Add a check commit task
+	 * Corresponding to a search commit query to github
+	 * Fail if there is no commit correponding to the criterias
+	 * This task add a property containing each commit returned by the query.
+	 *
+	 * @param {*} options options the search commits query
+	 * @param {*} name Name of the property to add to the final results
+	 * @param {*} optional If optional, the object will continue the chain
+	 */
+	checkCommit(options, name, optional) {
+		this.taskChain.task(async (r, recover) => {
+			prompt.level(0).print("Testing for : ", options, " in ", r.name)
+			let results = await checkCommit(options, name)(r, recover)
+			return {
+				...results,
+				continue: results.results.properties[name].valid || optional
 			}
 		})
 		return this;

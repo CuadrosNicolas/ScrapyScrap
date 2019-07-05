@@ -9,26 +9,22 @@ let start = async function () {
 	 * With a step of 1 day between each sub request of repository
 	 */
 	const chainName = "AkkaProjects"
-	const collectionName = "queryChain"
 			queryChain(chainName, {
-				keywords: "",
-				language: "scala",
-				begin: new Date("2019-01-01"),
-				end: new Date("2019-07-01"),
-				stars: ">0",
-				step: 1
+				type : "query",
+					query : {
+					keywords: "",
+					language: "scala",
+					begin: new Date("2019-06-01"),
+					end: new Date("2019-06-03"),
+					stars: ">0",
+					step: 1
+					}
 				})
 				.checkFile({
+					keywords : "akka",
 					fileName:"build",
 					fileExtension:"sbt"
 				},"sbt")
-				.checkFile({
-						keywords: "akka-actor"
-				}, "actor") //Check if the repository contain a build.sbt file
-								// and if it contain the akka-actor keyword
-				.checkFile({
-					keywords: "akka-test"
-				}, "test")
 				//.checkProperty(r=>true)//r.properties.actor.valid && r.properties.test.valid)
 				.clone("./results")	//Clone the repository
 									//Add the fullPath property to the repository
@@ -41,24 +37,6 @@ let start = async function () {
 						Object.keys(r).forEach((k)=>{
 							console.log(`\t ${r[k].owner.login}/${r[k].name}`)
 						})
-						var url = "mongodb://localhost:27017/";
-						MongoClient.connect(url,async  function (err, db) {
-							if (err) throw err;
-							var dbo = db.db(queryChain);
-							try{
-								await dbo.dropCollection(chainName)
-							}
-							catch(e)
-							{
-								//
-							}
-							Object.keys(r).forEach((k) => {
-								dbo.collection(chainName).insertOne(r[k], function (err, res) {
-									if (err) throw err;
-								});
-							})
-							db.close()
-						});
 					}) //Shows each repositories that fulfill all criterias
 
 }
