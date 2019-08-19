@@ -57,6 +57,12 @@ class TrackSystem {
 		} else {
 			this.linkData = {}
 		}
+		if (fs.existsSync("./taskStats_" + this.name + ".json") && fs.existsSync("./taskStats_" + this.name + ".json")
+			&& fs.existsSync("./track_" + this.name + ".json")) {
+			this.taskStats = JSON.parse(fs.readFileSync("./taskStats_" + this.name + ".json"))
+		} else {
+			this.taskStats = {tasksNames:null,taskMap:null}
+		}
 	}
 	isEmpty() {
 		return Object.keys(this.data).length == 0
@@ -66,9 +72,16 @@ class TrackSystem {
 		this.save();
 		fs.unlinkSync("./track_" + this.name + ".json", JSON.stringify(this.data))
 	}
+	incTaskCounter(name)
+	{
+		if (name) {
+			this.taskStats.taskMap[name] += 1;
+		}
+	}
 	save() {
 		fs.writeFileSync("./track_" + this.name + ".json", JSON.stringify(this.data))
 		fs.writeFileSync("./results_" + this.name + ".json", JSON.stringify(this.linkData))
+		fs.writeFileSync("./taskStats_" + this.name + ".json", JSON.stringify(this.taskStats))
 
 	}
 }
@@ -93,6 +106,12 @@ class TaskChain {
 			this.lastTask = 0
 		this.taskList = []
 		this.saveObjectFunction = saveObjectFunction
+		this.stats = this.trackSystem.taskStats
+		if(!this.stats.tasksNames)
+		{
+			this.stats.tasksNames = []
+			this.stats.taskMap = {'entry':0}
+		}
 	}
 	saveObject(o)
 	{
@@ -111,6 +130,8 @@ class TaskChain {
 		let rec = this.trackSystem.get("generator")
 		let lastAnalysedResults = 0;
 		for await (let { results, recover } of this.generator(rec)) {
+			if(this.lastTask==0)
+				this.trackSystem.incTaskCounter('entry');
 			this.trackSystem.setState({ generator: recover, lastTask: {},taskRecover : {} })
 			let r = this.lastTask > 0 ? this.datas[this.trackSystem.get("lastAnalysedResults")] : results;
 			for (let act_t = this.lastTask; act_t < this.taskList.length && r!=null; act_t++) {
@@ -120,7 +141,10 @@ class TaskChain {
 				this.trackSystem.setState({ taskRecover: temp.recover })
 				r = temp.results
 				if(temp.continue)
+				{
+					this.trackSystem.incTaskCounter(this.stats.tasksNames[act_t]);
 					lastAnalysedResults = this.saveObject(r)
+				}
 				else{
 					lastAnalysedResults = null;
 					this.removeObject(r)
@@ -134,9 +158,18 @@ class TaskChain {
 		this.trackSystem.clean()
 		callback(this.datas);
 	}
-	task(t) {
 
-			this.taskList = [...this.taskList, t]
+	task(t,alias=null) {
+
+		this.taskList = [...this.taskList, t]
+		this.stats.tasksNames = [...this.stats.tasksNames,alias]
+			if(alias)
+			{
+				this.stats.taskMap = {
+					...this.stats.taskMap,
+					[alias] : this.stats.taskMap[alias] ? this.stats.taskMap[alias] : 0,
+				}
+			}
 			return this;
 	}
 

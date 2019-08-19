@@ -67,17 +67,6 @@ class QueryChainObject{
 		else{
 			throw new Error("Bad chain type")
 		}
-		this.propertiesCounter = {};
-		if(this.taskChain.lastTask!= 0)
-			this.propertiesCounter = JSON.parse(fs.readFileSync('./filters_'+this.name+'.json'));
-	}
-	addProperty(name)
-	{
-		this.propertiesCounter[name] = 0;
-	}
-	incProperty(name)
-	{
-		this.propertiesCounter[name] = this.propertiesCounter[name]+1;
 	}
 	/**
 	 * Add a check file task
@@ -91,16 +80,14 @@ class QueryChainObject{
 	 */
 	checkFile(options,name,optional=false)
 	{
-		this.addProperty(name);
 		this.taskChain.task(async (r,recover)=>{
-			this.incProperty(name);
 			prompt.level(0).print("Testing for : ",options," in ",r.name)
 			let results = await check(options,name)(r,recover)
 			return{
 				...results,
 				continue : results.results.properties[name].valid || optional
 			}
-		})
+		},name)
 		return this;
 	}
 	/**
@@ -114,16 +101,14 @@ class QueryChainObject{
 	 * @param {*} optional If optional, the object will continue the chain
 	 */
 	checkCommit(options, name, optional=false) {
-		this.addProperty(name);
 		this.taskChain.task(async (r, recover) => {
-			this.incProperty(name);
 			prompt.level(0).print("Testing for : ", options, " in ", r.name)
 			let results = await checkCommit(options, name)(r, recover)
 			return {
 				...results,
 				continue: results.results.properties[name].valid || optional
 			}
-		})
+		},name)
 		return this;
 	}
 	/**
@@ -142,7 +127,7 @@ class QueryChainObject{
 				 ...temp,
 				 continue: true
 			 }
-			})
+			},'clone')
 		return this;
 	}
 	/**
@@ -150,7 +135,7 @@ class QueryChainObject{
 	 * @param {*} f take a repository and return a boolean
 	 * 				use it to test properties of the repository
 	 */
-	checkProperty(condition=(r)=>true)
+	checkProperty(condition=(r)=>true,name=null)
 	{
 		this.taskChain.task(async (r)=>{
 				return {
@@ -158,7 +143,7 @@ class QueryChainObject{
 					recover : {},
 					continue: condition(r)
 				}
-		})
+		},name)
 		return this;
 	}
 
@@ -175,9 +160,7 @@ class QueryChainObject{
 	 */
 	checkCommand(f, propertyName, condition = ({ error, stdout, stderr },optional=false)=>error==null)
 	{
-		this.addProperty(propertyName);
 		this.taskChain.task(async(repo,recover)=>{
-			this.incProperty(propertyName)
 			let commands = f(repo);
 			prompt.level(0).print("Executing : ",commands)
 			let r = await execShellCommand(commands)
@@ -190,7 +173,7 @@ class QueryChainObject{
 				recover : {},
 				continue : out.properties[propertyName] || optional
 			}
-		})
+		},propertyName)
 		return this;
 	}
 	/**
@@ -205,9 +188,7 @@ class QueryChainObject{
 	 */
 	checkCommandOnFiles(filesProperty,command, propertyName, optional=false, condition = ({ error, stdout, stderr }, optional = false) => error == null)
 	{
-		this.addProperty(propertyName);
 		this.taskChain.task(async (repo, recover)=>{
-			this.incProperty(propertyName);
 			let files = repo.properties[filesProperty].files;
 			let valid = false;
 			let validFolders =[]
@@ -233,7 +214,7 @@ class QueryChainObject{
 				recover: {},
 				continue: out.properties[propertyName] || optional
 			}
-		})
+		},propertyName)
 		return this;
 	}
 	/**
@@ -248,9 +229,7 @@ class QueryChainObject{
 	 */
 	checkLOC(parents, extension,propertyName,threshold=-1,optional=false)
 	{
-		this.addProperty(propertyName);
 		this.taskChain.task(async(repo,recover)=>{
-			this.incProperty(propertyName);
 			let files = endsWith(walkSync(repo.properties.fullPath),extension);
 			let loc = 0;
 			checkParents(files,parents).forEach((f)=>loc+=LOC(f));
@@ -264,7 +243,7 @@ class QueryChainObject{
 				recover: {},
 				continue: loc > threshold || optional
 			}
-		})
+		},propertyName)
 		return this;
 	}
 	/**
@@ -278,9 +257,7 @@ class QueryChainObject{
 	* @param {*} optional
 	*/
 	checkLOCExclude(parents, excludeName, extension, propertyName, threshold = -1, optional = false) {
-		this.addProperty(propertyName);
 		this.taskChain.task(async (repo, recover)=>{
-			this.incProperty(propertyName);
 			let files = endsWith(walkSync(repo.properties.fullPath), extension);
 			let loc = 0;
 			checkExcludes(files, parents, excludeName).forEach((f) => loc += LOC(f));
@@ -294,17 +271,12 @@ class QueryChainObject{
 				recover: {},
 				continue: loc > threshold || optional
 			}
-		})
+		},propertyName)
 		return this;
 	}
 	async run(callback=(r)=>null)
 	{
-		await this.taskChain.run((r)=>{
-			this.addProperty("$end");
-			this.propertiesCounter["$end"] = Object.keys(r).length;
-			fs.writeFileSync("./filters_" + this.name + ".json", JSON.stringify(this.propertiesCounter))
-			callback(r)
-		})
+		await this.taskChain.run(callback)
 	}
 }
 
