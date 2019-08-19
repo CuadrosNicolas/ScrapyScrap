@@ -28,9 +28,7 @@ let start = async function () {
 				//Add the fullPath property to the repository
 				.checkLOC('test','.scala','loc_test',10)
 				.checkLOCExclude('src','test', '.scala', 'loc_src', 10)
-				 .checkCommand((r) =>
-					 `cd ${r.properties.fullPath} && sbt compile < /dev/null;`
-				 ,"buildable")	//Test to compile
+				.checkCommandOnFiles('sbt','sbt compile < /dev/null','buildable')
 				.run((r) => {
 						console.log("Repositories : ",Object.keys(r).length)
 						Object.keys(r).forEach((k)=>{

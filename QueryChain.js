@@ -177,6 +177,47 @@ class QueryChainObject{
 		return this;
 	}
 	/**
+	 * Check a command on a list of file produced by a checkFile
+	 *
+	 *
+	 * @param {*} filesProperty name of the checkFile property
+	 * @param {*} command command to apply on the folder of each files
+	 * @param {*} propertyName name of the output property
+	 * @param {*} optional
+	 * @param {*} condition 
+	 */
+	checkCommandOnFiles(filesProperty,command, propertyName, optional=false, condition = ({ error, stdout, stderr }, optional = false) => error == null)
+	{
+		this.taskChain.task(async function (repo, recover) {
+			let files = repo.properties[filesProperty].files;
+			let valid = false;
+			let validFolders =[]
+			files.forEach(async ({name,path})=>{
+				let _path = repo.properties.fullPath + path.split('/').slice(1,path.split('/').length-1).join('/')
+				let p = "cd "+ _path;
+				prompt.level(1).print("Executing : ", p + " && " + command)
+				let r = await execShellCommand(p+" && "+command)
+
+				if(condition(r))
+				{
+					valid = true;
+					validFolders.push(_path)
+				}
+			})
+			let out = repo
+			out.properties[propertyName] = {
+				valid : valid || optional,
+				validFolders
+			}
+			return {
+				results: out,
+				recover: {},
+				continue: out.properties[propertyName] || optional
+			}
+		})
+		return this;
+	}
+	/**
 	 *	Check the number of lines of code in a repository with a parent containing
 	 *  a certain name.
 	 *
