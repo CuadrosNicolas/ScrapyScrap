@@ -1,5 +1,4 @@
 const {queryChain} = require("./QueryChain")
-var MongoClient = require('mongodb').MongoClient;
 let start = async function () {
 	/**
 	 * Get repositories containing the akka keywords
@@ -8,14 +7,14 @@ let start = async function () {
 	 * With an amount of stars superior to 0
 	 * With a step of 1 day between each sub request of repository
 	 */
-	const chainName = "AkkaProjects_post"
+	const chainName = "flaky_project"
 			queryChain(chainName, {
 				type : "file",
 				path: "./results_AkkaProjects.json"
 				})
 				.checkCommit({
-					keywords : "a",
-				},"commit")
+					keywords : "flaky flaki Flaky Flaki",
+				}, "flaky")
 				.run((r)=>{
 						Object.keys(r).forEach((k)=>{
 							console.log(`\t ${r[k].owner.login}/${r[k].name}`)

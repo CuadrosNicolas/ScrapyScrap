@@ -1,7 +1,7 @@
 const {TaskChain} = require("./Chain");
 const {check,cloneRepository,checkCommit,
 	getQueryRepoGenerator} = require("./Query")
-const {prompt} = require("./Utils")
+const {prompt,checkParents,checkExcludes,walkSync,LOC,endsWith} = require("./Utils")
 const exec = require('child_process').exec;
 const fs = require('fs')
 
@@ -77,7 +77,7 @@ class QueryChainObject{
 	 * @param {*} name Name of the property to add to the final results
 	 * @param {*} optional If optional, the object will continue the chain
 	 */
-	checkFile(options,name,optional)
+	checkFile(options,name,optional=false)
 	{
 		this.taskChain.task(async (r,recover)=>{
 			prompt.level(0).print("Testing for : ",options," in ",r.name)
@@ -99,7 +99,7 @@ class QueryChainObject{
 	 * @param {*} name Name of the property to add to the final results
 	 * @param {*} optional If optional, the object will continue the chain
 	 */
-	checkCommit(options, name, optional) {
+	checkCommit(options, name, optional=false) {
 		this.taskChain.task(async (r, recover) => {
 			prompt.level(0).print("Testing for : ", options, " in ", r.name)
 			let results = await checkCommit(options, name)(r, recover)
@@ -172,6 +172,63 @@ class QueryChainObject{
 				results :out,
 				recover : {},
 				continue : out.properties[propertyName] || optional
+			}
+		})
+		return this;
+	}
+	/**
+	 *	Check the number of lines of code in a repository with a parent containing
+	 *  a certain name.
+	 *
+	 * @param {*} parents Parent folder of a file
+	 * @param {*} propertyName Name of the property which will contain : {valid,loc} which are if it exceed the threshold and the loc
+	 * @param {*} extension Extension of files
+	 * @param {*} threshold Number of LOC to exceed in order to validate the property
+	 * @param {*} optional
+	 */
+	checkLOC(parents, extension,propertyName,threshold=-1,optional=false)
+	{
+		this.taskChain.task(async function(repo,recover){
+			let files = endsWith(walkSync(repo.properties.fullPath),extension);
+			let loc = 0;
+			checkParents(files,parents).forEach((f)=>loc+=LOC(f));
+			let out = repo;
+			out.properties[propertyName] = {
+				valid : loc>threshold,
+				loc
+			}
+			return {
+				results: out,
+				recover: {},
+				continue: loc > threshold || optional
+			}
+		})
+		return this;
+	}
+	/**
+	 *	Check the number of lines of code in a repository with a parent containing
+	*  a certain name.
+	*
+	* @param {*} parents Parent folder which the file must not have.
+	* @param {*} propertyName Name of the property which will contain : {valid,loc} which are if it exceed the threshold and the loc
+	* @param {*} extension Extension of files
+	* @param {*} threshold Number of LOC to exceed in order to validate the property
+	* @param {*} optional
+	*/
+	checkLOCExclude(parents, excludeName, extension, propertyName, threshold = -1, optional = false) {
+		this.taskChain.task(async function (repo, recover) {
+			let files = endsWith(walkSync(repo.properties.fullPath), extension);
+			let loc = 0;
+			checkExcludes(files, parents, excludeName).forEach((f) => loc += LOC(f));
+			let out = repo;
+			out.properties[propertyName] = {
+				valid: loc > threshold,
+				loc
+			}
+			return {
+				results: out,
+				recover: {},
+				continue: loc > threshold || optional
 			}
 		})
 		return this;

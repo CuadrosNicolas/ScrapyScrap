@@ -1,5 +1,4 @@
 const {queryChain} = require("./QueryChain")
-var MongoClient = require('mongodb').MongoClient;
 let start = async function () {
 	/**
 	 * Get repositories containing the akka keywords
@@ -15,7 +14,7 @@ let start = async function () {
 					keywords: "",
 					language: "scala",
 					begin: new Date("2019-06-01"),
-					end: new Date("2019-06-03"),
+					end: new Date("2019-06-02"),
 					stars: ">0",
 					step: 1
 					}
@@ -25,17 +24,17 @@ let start = async function () {
 					fileName:"build",
 					fileExtension:"sbt"
 				},"sbt")
-				//.checkProperty(r=>true)//r.properties.actor.valid && r.properties.test.valid)
 				.clone("./results")	//Clone the repository
-									//Add the fullPath property to the repository
+				//Add the fullPath property to the repository
+				.checkLOC('test','.scala','loc_test',10)
+				.checkLOCExclude('src','test', '.scala', 'loc_src', 10)
 				 .checkCommand((r) =>
-				 `cd ${r.properties.fullPath} && sbt compile < /dev/null;`
+					 `cd ${r.properties.fullPath} && sbt compile < /dev/null;`
 				 ,"buildable")	//Test to compile
-
-				.run((r)=>{
+				.run((r) => {
 						console.log("Repositories : ",Object.keys(r).length)
 						Object.keys(r).forEach((k)=>{
-							console.log(`\t ${r[k].owner.login}/${r[k].name}`)
+							console.log(`\t ${r[k].owner.login}/${r[k].name} loc: ${r[k].properties.loc_src.loc} ${r[k].properties.loc_test.loc}`)
 						})
 					}) //Shows each repositories that fulfill all criterias
 

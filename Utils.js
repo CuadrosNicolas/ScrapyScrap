@@ -34,9 +34,51 @@ const prompt = {
 	}
 }
 
+// List all files in a directory in Node.js recursively in a synchronous fashion
+var walkSync = function (dir, filelist) {
+	var path = path || require('path');
+	var fs = fs || require('fs'),
+		files = fs.readdirSync(dir);
+	filelist = filelist || [];
+	files.forEach(function (file) {
+		if (fs.statSync(path.join(dir, file)).isDirectory()) {
+			filelist = walkSync(path.join(dir, file), filelist);
+		}
+		else {
+			filelist.push(path.join(dir,file));
+		}
+	});
+	return filelist;
+};
+
+const listContains = (l,n)=>l.filter(f=>f===n).length>0;
+const checkParents = (list, parentName) => {
+	return list.filter((f) =>  listContains(f.split('/'),parentName));
+}
+const checkExcludes = (list, parentName,exludeName) => {
+	let l = checkParents(list, parentName);
+	return l.filter((f) => !listContains(f.split('/'), exludeName));
+}
+
+const LOC=(filename)=>{
+	var fs = require('fs');
+	fileBuffer = fs.readFileSync(filename);
+	to_string = fileBuffer.toString();
+	split_lines = to_string.split("\n").filter(l => l.replace(/\s/g, '').length);
+	return split_lines.length;
+}
+const endsWith=(list,name)=>{
+	return list.filter((f)=>f.endsWith(name))
+}
+
 module.exports = {
 	sleep,
 	addDays,
 	formatDate,
-	prompt
+	prompt,
+	walkSync,
+	checkParents,
+	checkExcludes,
+	endsWith,
+	LOC
 }
