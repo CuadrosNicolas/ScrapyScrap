@@ -81,7 +81,7 @@ class QueryChainObject{
 	checkFile(options,name,optional=false)
 	{
 		this.taskChain.task(async (r,recover)=>{
-			prompt.level(0).print("Testing for : ",options," in ",r.name)
+			prompt.level(0).print("\tTesting for : ",JSON.stringify(options)," in ",r.name)
 			let results = await check(options,name)(r,recover)
 			return{
 				...results,
@@ -121,7 +121,7 @@ class QueryChainObject{
 	clone(folder)
 	{
 		 this.taskChain.task(async (r)=>{
-			 prompt.level(0).print(`Cloning ${r.name} to ${folder}`)
+			 prompt.level(0).print(`\tCloning ${r.name} to ${folder}`)
 			 let temp = await cloneRepository(r,folder);
 			 return {
 				 ...temp,
@@ -238,6 +238,7 @@ class QueryChainObject{
 				valid : loc>threshold,
 				loc
 			}
+			console.log(`\ttotal lock with ${parents}: ` + loc)
 			return {
 				results: out,
 				recover: {},
@@ -259,13 +260,17 @@ class QueryChainObject{
 	checkLOCExclude(parents, excludeName, extension, propertyName, threshold = -1, optional = false) {
 		this.taskChain.task(async (repo, recover)=>{
 			let files = endsWith(walkSync(repo.properties.fullPath), extension);
-			let loc = 0;
-			checkExcludes(files, parents, excludeName).forEach((f) => loc += LOC(f));
+			let loc =0;
+			checkExcludes(files, parents, excludeName).forEach((f) =>
+			{
+				loc += LOC(f)
+			});
 			let out = repo;
 			out.properties[propertyName] = {
 				valid: loc > threshold,
 				loc
 			}
+			console.log(`\ttotal lock with ${parents} exluding ${excludeName}: `+loc)
 			return {
 				results: out,
 				recover: {},
