@@ -30,9 +30,9 @@ let start = async function () {
 
 			language: "java",
 
-			begin: new Date("2019-03-18"),
+			begin: new Date("2017-08-18"),
 
-			end: new Date("2019-03-19"),
+			end: new Date("2019-08-18"),
 
 			stars: ">0",
 
