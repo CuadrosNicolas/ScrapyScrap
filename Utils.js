@@ -41,11 +41,14 @@ var walkSync = function (dir, filelist) {
 		files = fs.readdirSync(dir);
 	filelist = filelist || [];
 	files.forEach(function (file) {
-		if (fs.statSync(path.join(dir, file)).isDirectory()) {
-			filelist = walkSync(path.join(dir, file), filelist);
-		}
-		else {
-			filelist.push(path.join(dir,file));
+		if(path.join(dir,file).split('/').filter(n=>n.startsWith('.')).length==0)
+		{
+			if (fs.statSync(path.join(dir, file)).isDirectory()) {
+				filelist = walkSync(path.join(dir, file), filelist);
+			}
+			else {
+				filelist.push(path.join(dir,file));
+			}
 		}
 	});
 	return filelist;
