@@ -34,14 +34,13 @@ const prompt = {
 	}
 }
 
-// List all files in a directory in Node.js recursively in a synchronous fashion
 var walkSync = function (dir, filelist) {
 	var path = path || require('path');
 	var fs = fs || require('fs'),
 		files = fs.readdirSync(dir);
 	filelist = filelist || [];
 	files.forEach(function (file) {
-		if(path.join(dir,file).split('/').filter(n=>n.startsWith('.')).length==0)
+		if((path.join(dir,file).split('/').filter(n=>n.startsWith('.') && n.length>1)).length==0)
 		{
 			if (fs.statSync(path.join(dir, file)).isDirectory()) {
 				filelist = walkSync(path.join(dir, file), filelist);

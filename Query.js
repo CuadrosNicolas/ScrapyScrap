@@ -210,7 +210,15 @@ async function cloneRepository(repo, folder = "./repos") {
 				folder += '/'
 			repo.folder = folder + repo.owner.login + "/" + repo.name
 			repo.properties.fullPath = process.cwd() + repo.folder.replace(".", "")
-			Git.Clone(repo.clone_url, folder + repo.owner.login + "/" + repo.name)
+
+			try{
+
+				await Git.Clone(repo.clone_url, folder + repo.owner.login + "/" + repo.name);
+			}
+			catch(e)
+			{
+				console.log(e)
+			}
 			return {
 				results : repo,
 				recover : {}

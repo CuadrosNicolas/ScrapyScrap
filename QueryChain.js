@@ -232,7 +232,10 @@ class QueryChainObject{
 		this.taskChain.task(async(repo,recover)=>{
 			let files = endsWith(walkSync(repo.properties.fullPath),extension);
 			let loc = 0;
-			checkParents(files,parents).forEach((f)=>loc+=LOC(f));
+			checkParents(files,parents).forEach((f)=>
+			{
+				loc+=LOC(f)
+			});
 			let out = repo;
 			out.properties[propertyName] = {
 				valid : loc>threshold,
