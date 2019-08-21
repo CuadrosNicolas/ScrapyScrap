@@ -13,8 +13,8 @@ let start = async function () {
 					query : {
 					keywords: "",
 					language: "scala",
-					begin: new Date("2019-06-01"),
-					end: new Date("2019-06-03"),
+					begin: new Date("2019-01-01"),
+					end: new Date("2019-08-21"),
 					stars: ">0",
 					step: 1
 					}
