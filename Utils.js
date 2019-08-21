@@ -36,27 +36,35 @@ const prompt = {
 
 var walkSync = function (dir, filelist) {
 	var path = path || require('path');
-	var fs = fs || require('fs'),
-		files = fs.readdirSync(dir);
+	var fs = fs || require('fs');
 	filelist = filelist || [];
-	files.forEach(function (file) {
-		if((path.join(dir,file).split('/').filter(n=>n.startsWith('.') && n.length>1)).length==0)
-		{
-			try{
-				if (fs.statSync(path.join(dir, file)).isDirectory()) {
-					filelist = walkSync(path.join(dir, file), filelist);
-				}
-				else {
-					filelist.push(path.join(dir,file));
-				}
-			}
-			catch(e)
+	try{
+
+		var files = fs.readdirSync(dir);
+		files.forEach(function (file) {
+			if((path.join(dir,file).split('/').filter(n=>n.startsWith('.') && n.length>1)).length==0)
 			{
-				console.log("Error while reading file : "+file)
-				console.log("Message : "+e)
+				try{
+					if (fs.statSync(path.join(dir, file)).isDirectory()) {
+						filelist = walkSync(path.join(dir, file), filelist);
+					}
+					else {
+						filelist.push(path.join(dir,file));
+					}
+				}
+				catch(e)
+				{
+					console.log("Error while reading file : "+file)
+					console.log("Message : "+e)
+				}
 			}
-		}
-	});
+		});
+	}
+	catch(e)
+	{
+		console.log("Error while reading dir : " + file)
+		console.log("Message : " + e)
+	}
 	return filelist;
 };
 
