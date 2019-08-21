@@ -14,7 +14,7 @@ let start = async function () {
 					keywords: "",
 					language: "scala",
 					begin: new Date("2019-06-01"),
-					end: new Date("2019-06-02"),
+					end: new Date("2019-06-03"),
 					stars: ">0",
 					step: 1
 					}
@@ -28,7 +28,7 @@ let start = async function () {
 				//Add the fullPath property to the repository
 				.checkLOC('test','.scala','loc_test',10)
 				.checkLOCExclude('src','test', '.scala', 'loc_src', 10)
-				.checkCommandOnFiles('sbt','sbt compile < /dev/null','buildable')
+				//.checkCommandOnFiles('sbt','sbt compile < /dev/null','buildable')
 				.run((r) => {
 						console.log("Repositories : ",Object.keys(r).length)
 						Object.keys(r).forEach((k)=>{

@@ -50,6 +50,8 @@ async function* queryGenerator(queryFunction, query, recover) {
 		};
 		page++;
 	}
+	recover ={};
+	lastResults = null;
 	while (page <= 10 && (total_count == null || count < total_count)) {
 		let wait = 0;
 		let rateLimit = (await clientWithAuth.rateLimit.get()).data
@@ -256,6 +258,7 @@ function getQueryRepoGenerator(options)
 			let actualQuery = query + formatDate(beginDate) + ".." + formatDate(stepDate)
 			for await (let { results, recover } of queryGenerator(clientWithAuth.search.repos, actualQuery,rec)) {
 				for (let i = index; i < results.length; i++) {
+					rec = undefined;
 					let repo = results[i];
 					if (!(alreadySeen.hasOwnProperty(repo.id))) {
 						yield {

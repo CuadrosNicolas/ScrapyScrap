@@ -162,7 +162,8 @@ class TaskChain {
 	task(t,alias=null) {
 
 		this.taskList = [...this.taskList, t]
-		this.stats.tasksNames = [...this.stats.tasksNames,alias]
+		if(!(this.stats.tasksNames.find(r=>r==alias)))
+			this.stats.tasksNames = [...this.stats.tasksNames,alias]
 			if(alias)
 			{
 				this.stats.taskMap = {
