@@ -54,12 +54,14 @@ async function* queryGenerator(queryFunction, query, recover) {
 		let wait = 0;
 		let rateLimit = (await clientWithAuth.rateLimit.get()).data
 		let results = null
-		await queryFunction({ q: query }).then((d) => {
+		try{
+			let d = await queryFunction({q:query});
 			results = d;
 			total_count = d.data.total_count
 			length = d.data.items.length
 			count += length
-		}).catch(e => {
+		}
+		catch(e){
 			if (e.status == 403) {
 				time = rateLimit.resources.search.reset
 				waitingTime = new Date((time + 1) * 1000)
@@ -69,7 +71,7 @@ async function* queryGenerator(queryFunction, query, recover) {
 			else {
 				throw e
 			}
-		})
+		}
 		if (wait == 0) {
 			yield {
 				results: results.data.items,
