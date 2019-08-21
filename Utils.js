@@ -62,7 +62,7 @@ var walkSync = function (dir, filelist) {
 	}
 	catch(e)
 	{
-		console.log("Error while reading dir : " + file)
+		console.log("Error while reading dir : " + dir)
 		console.log("Message : " + e)
 	}
 	return filelist;
