@@ -26,9 +26,9 @@ let start = async function () {
 				},"sbt")
 				.clone("./results")	//Clone the repository
 				//Add the fullPath property to the repository
-				.checkLOC('test','.scala','loc_test',10)
-				.checkLOCExclude('src','test', '.scala', 'loc_src', 10)
-				//.checkCommandOnFiles('sbt','sbt compile < /dev/null','buildable')
+				.checkLOC('test','.scala','loc_test')
+				.checkLOCExclude('src','test', '.scala', 'loc_src')
+				.checkCommandOnFiles('sbt','sbt compile < /dev/null','buildable')
 				.run((r) => {
 						console.log("Repositories : ",Object.keys(r).length)
 						Object.keys(r).forEach((k)=>{
