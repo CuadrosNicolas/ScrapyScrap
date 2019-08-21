@@ -192,18 +192,22 @@ class QueryChainObject{
 			let files = repo.properties[filesProperty].files;
 			let valid = false;
 			let validFolders =[]
-			files.forEach(async ({name,path})=>{
-				let _path = repo.properties.fullPath + path.split('/').slice(1,path.split('/').length-1).join('/')
-				let p = "cd "+ _path;
-				prompt.level(1).print("Executing : ", p + " && " + command)
-				let r = await execShellCommand(p+" && "+command)
-
-				if(condition(r))
+			let pathRegister = {}
+			for await(let {name,path} of files)
+			{
+				let _path = repo.properties.fullPath + path.split('/').slice(1, path.split('/').length - 1).join('/')
+				let p = "cd " + _path;
+				if(pathRegister[_path]===undefined)
 				{
-					valid = true;
-					validFolders.push(_path)
+					pathRegister[_path] = true;
+					prompt.level(1).print("Executing : ", p + " && " + command)
+					let r = await execShellCommand(p + " && " + command)
+					if (condition(r)) {
+						valid = true;
+						validFolders.push(_path)
+					}
 				}
-			})
+			}
 			let out = repo
 			out.properties[propertyName] = {
 				valid : valid || optional,
@@ -241,7 +245,7 @@ class QueryChainObject{
 				valid : loc>threshold,
 				loc
 			}
-			console.log(`\ttotal lock with ${parents}: ` + loc)
+			console.log(`\ttotal loc with ${parents}: ` + loc)
 			return {
 				results: out,
 				recover: {},
@@ -273,7 +277,7 @@ class QueryChainObject{
 				valid: loc > threshold,
 				loc
 			}
-			console.log(`\ttotal lock with ${parents} exluding ${excludeName}: `+loc)
+			console.log(`\ttotal loc with ${parents} exluding ${excludeName}: `+loc)
 			return {
 				results: out,
 				recover: {},
