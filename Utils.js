@@ -42,11 +42,18 @@ var walkSync = function (dir, filelist) {
 	files.forEach(function (file) {
 		if((path.join(dir,file).split('/').filter(n=>n.startsWith('.') && n.length>1)).length==0)
 		{
-			if (fs.statSync(path.join(dir, file)).isDirectory()) {
-				filelist = walkSync(path.join(dir, file), filelist);
+			try{
+				if (fs.statSync(path.join(dir, file)).isDirectory()) {
+					filelist = walkSync(path.join(dir, file), filelist);
+				}
+				else {
+					filelist.push(path.join(dir,file));
+				}
 			}
-			else {
-				filelist.push(path.join(dir,file));
+			catch(e)
+			{
+				console.log("Error while reading file : "+file)ù
+				console.log("Message : "+e)
 			}
 		}
 	});
